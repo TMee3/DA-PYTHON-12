@@ -1,0 +1,1 @@
+# Define CLI commands for events here
