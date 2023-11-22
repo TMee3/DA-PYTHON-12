@@ -4,7 +4,7 @@ from .user_controller import user
 
 from .role_controller import role
 from .auth_controller import auth
-from ..database import current_session
+from ..init_add_user import current_session
 
 
 @click.group()
