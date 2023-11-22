@@ -1,1 +1,0 @@
-# Define the Contract model here
