@@ -44,6 +44,9 @@ def check_auth(function):
         try:
             auth_id = verify_token(token)
             current_user = session.scalar(select(User).where(User.id == auth_id["id"]))
+            # Verify that the user exists
+            if not current_user:
+                return display_invalid_token()
             ctx.obj["current_user"] = current_user
             return function(ctx, *args, ** kwargs)
         except InvalidTokenError:
