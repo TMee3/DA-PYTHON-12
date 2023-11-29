@@ -2,7 +2,7 @@ import pytest
 from datetime import datetime, timedelta
 from epic_events.models.base import Base
 
-# Define roles, users, clients, contracts, and events data as dictionaries
+# Separated data definitions
 data = {
     "roles": [
         {"id": 1, "name": "commercial"},
@@ -94,10 +94,28 @@ data = {
     ]
 }
 
+def prepare_sqlalchemy_mock_config():
+    """Prepare mock configuration for SQLAlchemy.
+
+    Returns:
+        list: A list of tuples containing table names and their corresponding data.
+    """
+    return [(table, data[table]) for table in data]
+
 @pytest.fixture(scope="function")
 def sqlalchemy_declarative_base():
+    """Fixture for providing the SQLAlchemy Declarative Base.
+
+    Returns:
+        Base: The SQLAlchemy Declarative Base.
+    """
     return Base
 
 @pytest.fixture(scope="function")
 def sqlalchemy_mock_config():
-    return [(table, data[table]) for table in data]
+    """Fixture for providing mock configuration for SQLAlchemy tables.
+
+    Returns:
+        list: Mock configuration data for SQLAlchemy tables.
+    """
+    return prepare_sqlalchemy_mock_config()

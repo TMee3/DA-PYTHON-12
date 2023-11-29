@@ -134,6 +134,7 @@ def delete_client(session, ctx, client_id):
     selected_client = session.scalar(select(Client).where(Client.id == client_id))
     if not selected_client:
         return display_unknown_client()
+    
     if selected_client.commercial_contact_id != requester:
         return display_not_authorized()
 
@@ -143,4 +144,5 @@ def delete_client(session, ctx, client_id):
         return display_client_deleted()
     except Exception as e:
         return display_exception(e)
+
 
