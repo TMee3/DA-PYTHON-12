@@ -6,7 +6,7 @@ from .contract_controller import contract
 from .event_controller import event
 from .role_controller import role
 from .auth_controller import auth
-from ..init_setup import current_session
+from ..database import current_session
 
 
 @click.group(help="This tool manages the Epic Events application.")

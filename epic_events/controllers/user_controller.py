@@ -2,7 +2,7 @@ import click
 from sqlalchemy import select
 
 from epic_events.controllers.auth_controller import check_auth
-from epic_events.controllers.permissions_controller import has_permission
+from epic_events.permissions import has_permission
 from epic_events.models import Role, User
 from epic_events.views.generic_view import display_missing_data, display_exception, display_no_data_to_update
 from epic_events.views.user_view import display_user_already_exists, display_incorrect_role, display_user_created, \

@@ -2,7 +2,7 @@ import click
 from sqlalchemy import select
 
 from epic_events.controllers.auth_controller import check_auth
-from epic_events.controllers.permissions_controller import has_permission
+from epic_events.permissions import has_permission
 from epic_events.models import Contract, Client
 from epic_events.views.client_view import display_unknown_client
 from epic_events.views.contract_view import (display_contracts_list, display_contract_created,

@@ -3,7 +3,7 @@ from functools import wraps
 from sqlalchemy import select
 
 from epic_events.models import Role
-from epic_events.views.permissions_view import display_not_authorized
+from epic_events.views.generic_view import display_not_authorized
 
 
 def has_permission(roles):

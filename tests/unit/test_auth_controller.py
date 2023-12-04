@@ -9,7 +9,6 @@ class TestAuthController:
         "email, password, expected_exit_code, expected_output",
         [
             ("manager_lucas@test.com", "1234", 0, "Connection successful."),
-            ("manager_lucas@test.com", "1234", 0, "Connection successful."),
             ("manager_lucas@test.com", "4567", 1, "Please, be sure to use the correct email and password."),
             ("unknown@test.com", "1234", 1, "Please, be sure to use the correct email and password."),
         ],
