@@ -9,7 +9,7 @@ from epic_events.views.contract_view import (display_contracts_list, display_con
                                              display_unknown_contract, display_contract_data, display_contract_deleted,
                                              display_contract_updated, display_error_amount)
 from epic_events.views.generic_view import display_exception, display_no_data_to_update
-from epic_events.views.permissions_view import display_not_authorized
+from epic_events.permissions import display_not_authorized
 
 
 @click.group()

@@ -8,7 +8,7 @@ from epic_events.views.client_view import display_unknown_client, display_client
     display_clients_list, display_client_already_exists, display_client_created, display_client_updated, \
     display_client_deleted, display_client_contact_updated
 from epic_events.views.generic_view import display_exception, display_no_data_to_update
-from epic_events.views.permissions_view import display_not_authorized
+from epic_events.permissions import display_not_authorized
 from epic_events.views.user_view import display_unknown_user
 
 

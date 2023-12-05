@@ -11,7 +11,7 @@ from epic_events.views.event_view import display_events_list, display_unknown_ev
     display_cant_create_event, display_event_created, display_error_event_date, display_event_deleted, \
     display_event_contact_updated, display_event_updated
 from epic_events.views.generic_view import display_exception, display_no_data_to_update
-from epic_events.views.permissions_view import display_not_authorized
+from epic_events.permissions import display_not_authorized
 from epic_events.views.user_view import display_unknown_user
 
 
