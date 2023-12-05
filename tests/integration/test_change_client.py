@@ -12,7 +12,7 @@ class TestChangeClient:
     first_commercial_name = "Nathan"
     first_commercial_password = "1234"
     second_commercial_email = "second_commercial@test.com"
-    second_commercial_name = "Amélie"
+    second_commercial_name = "amélie"
     second_commercial_password = "1234"
     client_email = "luc@mma.com"
     client_name = "luc"

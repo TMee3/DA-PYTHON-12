@@ -1,9 +1,12 @@
+from functools import wraps
+import json
 import os
+
 import click
+import sentry_sdk
 from dotenv import load_dotenv
 from jwt import encode, decode, InvalidTokenError
 from sqlalchemy import select
-from json import load, dump, JSONDecodeError
 
 from epic_events.models import User
 from epic_events.views.auth_view import (
@@ -17,38 +20,53 @@ from epic_events.views.auth_view import (
 load_dotenv()
 JWT_KEY = os.getenv("JWT_KEY")
 TOKEN_FILE_PATH = "auth_token.json"
-
-@click.group()
-@click.pass_context
-def auth(ctx):
-    ctx.ensure_object(dict)
+ERROR_MESSAGES = {
+    "json_decode_error": "JSON decode error",
+    "token_error_invalid": "Invalid token error",
+    "logout_confirmation": "Are you sure you want to logout?",
+}
 
 def verify_token(token):
-    try:
-        return decode(token, JWT_KEY, algorithms=["HS256"])
-    except InvalidTokenError:
-        return None
+    return decode(token, JWT_KEY, algorithms=["HS256"])
 
 def get_token():
     try:
         with open(TOKEN_FILE_PATH, 'r') as f:
-            return load(f).get('token')
-    except (FileNotFoundError, JSONDecodeError):
+            data = json.load(f)
+            return data.get('token', None)
+    except json.JSONDecodeError as e:
+        # Send a message via sentry to notify the json error
+        with sentry_sdk.push_scope() as scope:
+            scope.set_tag("json-error", ERROR_MESSAGES["json_decode_error"])
+            sentry_sdk.capture_exception(e)
+        return None
+    except FileNotFoundError:
         return None
 
 def check_auth(function):
-    @click.pass_context
+    @wraps(function)
     def wrapper(ctx, *args, **kwargs):
         session = ctx.obj["session"]
         token = get_token()
         if not token:
             return display_not_connected_error()
-        auth_id = verify_token(token)
-        if not auth_id:
+        try:
+            auth_id = verify_token(token)
+            current_user = session.scalar(select(User).where(User.id == auth_id["id"]))
+            ctx.obj["current_user"] = current_user
+            return function(ctx, *args, **kwargs)
+        except InvalidTokenError as e:
+            # Send a message via sentry to notify the token error
+            with sentry_sdk.push_scope() as scope:
+                scope.set_tag("token-error", ERROR_MESSAGES["token_error_invalid"])
+                sentry_sdk.capture_exception(e)
             return display_invalid_token()
-        ctx.obj["current_user"] = session.scalar(select(User).where(User.id == auth_id["id"]))
-        return function(ctx, *args, **kwargs)
     return wrapper
+
+@click.group()
+@click.pass_context
+def auth(ctx):
+    ctx.ensure_object(dict)
 
 @auth.command()
 @click.option("-e", "--email", required=True, type=str)
@@ -57,24 +75,23 @@ def check_auth(function):
 def login(ctx, email, password):
     session = ctx.obj["session"]
     user = session.scalar(select(User).where(User.email == email))
+
     if not (user and user.check_password(password)):
         return display_auth_data_entry_error()
     if get_token():
         return display_auth_already_connected()
+
     token = encode({"id": user.id}, JWT_KEY, algorithm="HS256")
     with open(TOKEN_FILE_PATH, "w") as f:
-        dump({"token": token}, f)
+        json.dump({"token": token}, f)
     return display_successful_connection(login=True)
 
 @auth.command()
-@click.confirmation_option(prompt="Are you sure you want to logout?")
+@click.confirmation_option(prompt=ERROR_MESSAGES["logout_confirmation"])
 def logout():
-    try:
-        with open(TOKEN_FILE_PATH, "r") as f:
-            data = load(f)
-            del data["token"]
-        with open(TOKEN_FILE_PATH, "w") as f:
-            dump(data, f)
-        return display_successful_connection(login=False)
-    except FileNotFoundError:
-        return display_not_connected_error()
+    with open(TOKEN_FILE_PATH, "r") as f:
+        data = json.load(f)
+        del data["token"]
+    with open(TOKEN_FILE_PATH, "w") as f:
+        json.dump(data, f)
+    return display_successful_connection(login=False)

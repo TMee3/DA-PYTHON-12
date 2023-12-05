@@ -1,4 +1,5 @@
 import click
+import sentry_sdk
 from sqlalchemy import select
 
 from epic_events.controllers.auth_controller import check_auth
@@ -9,7 +10,7 @@ from epic_events.views.contract_view import (display_contracts_list, display_con
                                              display_unknown_contract, display_contract_data, display_contract_deleted,
                                              display_contract_updated, display_error_amount)
 from epic_events.views.generic_view import display_exception, display_no_data_to_update
-from epic_events.permissions import display_not_authorized
+from epic_events.views.permissions_view import display_not_authorized
 
 
 @click.group()
@@ -51,6 +52,7 @@ def list_contracts(session, ctx, client_id, unpaid, status):
         contracts = session.scalars(query)
         return display_contracts_list(contracts)
     except Exception as e:
+        sentry_sdk.capture_exception(e)
         return display_exception(e)
 
 
@@ -77,8 +79,15 @@ def create_contract(session, ctx, client_id, amount, left_to_pay, status):
         session.add(new_contract)
         session.commit()
 
+        # Send a message via sentry to notify that a contract has been signed
+        if new_contract.status == "SIGNED":
+            with sentry_sdk.push_scope() as scope:
+                scope.set_tag("contracts-info", "signed")
+                sentry_sdk.capture_message(f"Contract {new_contract.id} has been signed.")
+
         return display_contract_created(new_contract)
     except Exception as e:
+        sentry_sdk.capture_exception(e)
         return display_exception(e)
 
 
@@ -109,8 +118,15 @@ def update_contract(session, ctx, contract_id, amount, left_to_pay, status):
         selected_contract.status = status if status else selected_contract.status
         session.commit()
 
+        # Send a message via sentry to notify that a contract has been signed
+        if status == "SIGNED":
+            with sentry_sdk.push_scope() as scope:
+                scope.set_tag("contracts-info", "signed")
+                sentry_sdk.capture_message(f"Contract {selected_contract.id} has been signed.")
+
         return display_contract_updated(selected_contract)
     except Exception as e:
+        sentry_sdk.capture_exception(e)
         return display_exception(e)
 
 
@@ -141,4 +157,5 @@ def delete_contract(session, ctx, contract_id):
         session.commit()
         return display_contract_deleted()
     except Exception as e:
+        sentry_sdk.capture_exception(e)
         return display_exception(e)

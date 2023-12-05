@@ -11,6 +11,3 @@ def display_exception(e):
 
 def display_no_data_to_update():
     raise ClickException("Can't update without data in the command.")
-
-def display_not_authorized():
-    raise ClickException("Sorry, you're not authorized.")

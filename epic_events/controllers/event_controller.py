@@ -1,17 +1,18 @@
 from datetime import datetime
 
 import click
+import sentry_sdk
 from sqlalchemy import select, and_
 
 from epic_events.controllers.auth_controller import check_auth
 from epic_events.permissions import has_permission
 from epic_events.models import Event, Contract, Client, User
 from epic_events.views.contract_view import display_unknown_contract
-from epic_events.views.event_view import display_events_list, display_unknown_event, display_event_data, \
-    display_cant_create_event, display_event_created, display_error_event_date, display_event_deleted, \
-    display_event_contact_updated, display_event_updated
+from epic_events.views.event_view import (display_events_list, display_unknown_event, display_event_data,
+                                         display_cant_create_event, display_event_created, display_error_event_date,
+                                         display_event_deleted, display_event_contact_updated, display_event_updated)
 from epic_events.views.generic_view import display_exception, display_no_data_to_update
-from epic_events.permissions import display_not_authorized
+from epic_events.views.permissions_view import display_not_authorized
 from epic_events.views.user_view import display_unknown_user
 
 
@@ -25,12 +26,12 @@ def event(ctx):
 def check_date(start, end):
     """Checks that the dates are in the future and that the end date is not before the start date
 
-        Args:
-            start (datetime): event start date
-            end (datetime): event end date
+    Args:
+        start (datetime): event start date
+        end (datetime): event end date
 
-        Returns:
-            error if conditions are not valid
+    Returns:
+        error if conditions are not valid
     """
     datetime_now = datetime.now()
     if start < datetime_now or end < datetime_now:
@@ -57,6 +58,7 @@ def list_events(session, ctx, contract_id, support_id, no_contact):
         events = session.scalars(query)
         return display_events_list(events)
     except Exception as e:
+        sentry_sdk.capture_exception(e)
         return display_exception(e)
 
 
@@ -99,6 +101,7 @@ def create_event(session, ctx, contract_id, start_date, end_date, location, atte
         session.commit()
         return display_event_created(new_event)
     except Exception as e:
+        sentry_sdk.capture_exception(e)
         return display_exception(e)
 
 
@@ -121,6 +124,7 @@ def update_event_support_contact(session, ctx, event_id, support_id):
         session.commit()
         return display_event_contact_updated(selected_event, selected_contact)
     except Exception as e:
+        sentry_sdk.capture_exception(e)
         return display_exception(e)
 
 
@@ -158,6 +162,7 @@ def update_event(session, ctx, event_id, start_date, end_date, location, attende
         session.commit()
         return display_event_updated(selected_event)
     except Exception as e:
+        sentry_sdk.capture_exception(e)
         return display_exception(e)
 
 
@@ -191,4 +196,5 @@ def delete_event(session, ctx, event_id):
         session.commit()
         return display_event_deleted()
     except Exception as e:
+        sentry_sdk.capture_exception(e)
         return display_exception(e)

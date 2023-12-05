@@ -1,4 +1,5 @@
 import click
+import sentry_sdk
 from sqlalchemy import select
 
 from epic_events.controllers.auth_controller import check_auth
@@ -41,8 +42,14 @@ def create_user(session, ctx, name, email, password, role):
         session.add(new_user)
         session.commit()
 
+        # Send a message via sentry to notify that a user is created
+        with sentry_sdk.push_scope() as scope:
+            scope.set_tag("user-info", "create user")
+            sentry_sdk.capture_message("New user created.")
+
         return display_user_created(email)
     except Exception as e:
+        sentry_sdk.capture_exception(e)
         return display_exception(e)
 
 
@@ -73,8 +80,14 @@ def update_user(session, ctx, user_id, name, email, role):
         selected_user.role = selected_role.id if role else selected_user.role
         session.commit()
 
+        # Send a message via sentry to notify that a user is updated
+        with sentry_sdk.push_scope() as scope:
+            scope.set_tag("user-info", "update user")
+            sentry_sdk.capture_message(f"User {selected_user.id} has been updated.")
+
         return display_user_updated(selected_user.email)
     except Exception as e:
+        sentry_sdk.capture_exception(e)
         return display_exception(e)
 
 
@@ -104,6 +117,7 @@ def delete_user(session, ctx,  user_id):
         session.commit()
         return display_user_deleted()
     except Exception as e:
+        sentry_sdk.capture_exception(e)
         return display_exception(e)
 
 
@@ -122,4 +136,5 @@ def list_users(session, ctx, role_id):
         users = session.scalars(query.order_by(User.name))
         return display_users_list(users)
     except Exception as e:
+        sentry_sdk.capture_exception(e)
         return display_exception(e)

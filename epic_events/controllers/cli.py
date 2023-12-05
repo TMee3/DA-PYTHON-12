@@ -1,12 +1,12 @@
 import click
 
-from .user_controller import user
-from .client_controller import client
-from .contract_controller import contract
-from .event_controller import event
-from .role_controller import role
-from .auth_controller import auth
-from ..database import current_session
+from epic_events.controllers.user_controller import user
+from epic_events.controllers.client_controller import client
+from epic_events.controllers.contract_controller import contract
+from epic_events.controllers.event_controller import event
+from epic_events.controllers.role_controller import role
+from epic_events.controllers.auth_controller import auth
+from epic_events.database import current_session
 
 
 @click.group(help="This tool manages the Epic Events application.")
