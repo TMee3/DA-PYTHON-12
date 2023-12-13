@@ -1,9 +1,8 @@
 from os import getenv
 
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from epic_events.models import Role, User
 from epic_events.models.base import Base
 
 
