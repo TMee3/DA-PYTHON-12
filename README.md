@@ -48,7 +48,7 @@ Refer to the [Setup Guide](#setup-guide) for detailed instructions on getting st
 
 The [How to Use](#how-to-use) section provides comprehensive instructions on operating the CRM, complete with command-line examples, user scenarios, and visual aids like screenshots, making it accessible for users of all skill levels.
 ***
-Prerequisites: Docker, Python, Poetry, Sentry
+Prerequisites: Python, Poetry, Sentry
 
 Our [Testing](#testing) documentation outlines how to run various tests, including unit and integration tests, and interpret the results. It also guides users through setting up a dedicated testing environment.
 ***
