@@ -11,8 +11,10 @@ def display_client_data(data):
 
 def display_clients_list(clients):
     for client in clients:
-        print(f"Id: {client.id}, name: {client.name}, email: {client.email}, phone: {client.phone}, "
-              f"company: {client.company}, contact_id: {client.commercial_contact_id}")
+        print(
+            f"Id: {client.id}, name: {client.name}, email: {client.email}, phone: {client.phone}, "
+            f"company: {client.company}, contact_id: {client.commercial_contact_id}"
+        )
 
 
 def display_client_already_exists(email):

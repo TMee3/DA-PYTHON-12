@@ -17,11 +17,16 @@ class Contract(Base):
     total_amount: Mapped[int]
     left_to_pay: Mapped[int]
     status: Mapped[Status]
-    creation_date: Mapped[datetime] = mapped_column(insert_default=datetime.now(timezone.utc))
-    update_date: Mapped[datetime] = mapped_column(insert_default=datetime.now(timezone.utc),
-                                                  onupdate=datetime.now(timezone.utc))
+    creation_date: Mapped[datetime] = mapped_column(
+        insert_default=datetime.now(timezone.utc)
+    )
+    update_date: Mapped[datetime] = mapped_column(
+        insert_default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc)
+    )
     client = relationship("Client", back_populates="contracts")
     events = relationship("Event", back_populates="contract", cascade="all, delete")
 
     def __repr__(self):
-        return f"Contract(id={self.id}, client_id={self.client_id}, status={self.status})"
+        return (
+            f"Contract(id={self.id}, client_id={self.client_id}, status={self.status})"
+        )

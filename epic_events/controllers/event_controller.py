@@ -2,16 +2,23 @@ from datetime import datetime
 
 import click
 import sentry_sdk
-from sqlalchemy import select, and_
+from sqlalchemy import and_, select
 
 from epic_events.controllers.auth_controller import check_auth
+from epic_events.models import Client, Contract, Event, User
 from epic_events.permissions import has_permission
-from epic_events.models import Event, Contract, Client, User
 from epic_events.views.contract_view import display_unknown_contract
-from epic_events.views.event_view import (display_events_list, display_unknown_event, display_event_data,
-                                         display_cant_create_event, display_event_created, display_error_event_date,
-                                         display_event_deleted, display_event_contact_updated, display_event_updated)
-from epic_events.views.generic_view import display_exception, display_no_data_to_update
+from epic_events.views.event_view import (display_cant_create_event,
+                                          display_error_event_date,
+                                          display_event_contact_updated,
+                                          display_event_created,
+                                          display_event_data,
+                                          display_event_deleted,
+                                          display_event_updated,
+                                          display_events_list,
+                                          display_unknown_event)
+from epic_events.views.generic_view import (display_exception,
+                                            display_no_data_to_update)
 from epic_events.views.permissions_view import display_not_authorized
 from epic_events.views.user_view import display_unknown_user
 
@@ -64,16 +71,30 @@ def list_events(session, ctx, contract_id, support_id, no_contact):
 
 @event.command(name="create")
 @click.option("-c", "--contract_id", required=True, type=int)
-@click.option("-sd", "--start_date", required=False, help="Start date (ex:14-08-2024 13:00)",
-              type=click.DateTime(formats=["%d-%m-%Y %H:%M"]), default=None)
-@click.option("-ed", "--end_date", required=False, help="End date (ex:14-08-2024 13:00)",
-              type=click.DateTime(formats=["%d-%m-%Y %H:%M"]), default=None)
+@click.option(
+    "-sd",
+    "--start_date",
+    required=False,
+    help="Start date (ex:14-08-2024 13:00)",
+    type=click.DateTime(formats=["%d-%m-%Y %H:%M"]),
+    default=None,
+)
+@click.option(
+    "-ed",
+    "--end_date",
+    required=False,
+    help="End date (ex:14-08-2024 13:00)",
+    type=click.DateTime(formats=["%d-%m-%Y %H:%M"]),
+    default=None,
+)
 @click.option("-l", "--location", required=False, type=str, default=None)
 @click.option("-a", "--attendees", required=False, type=int, default=None)
 @click.option("-n", "--notes", required=False, type=str, default=None)
 @click.pass_context
 @has_permission(["commercial"])
-def create_event(session, ctx, contract_id, start_date, end_date, location, attendees, notes):
+def create_event(
+    session, ctx, contract_id, start_date, end_date, location, attendees, notes
+):
     contract = session.scalar(select(Contract).where(Contract.id == contract_id))
     if not contract:
         return display_unknown_contract()
@@ -91,12 +112,14 @@ def create_event(session, ctx, contract_id, start_date, end_date, location, atte
         check_date(start_date, end_date)
 
     try:
-        new_event = Event(contract_id=contract_id,
-                          start_date=start_date,
-                          end_date=end_date,
-                          location=location,
-                          attendees=attendees,
-                          notes=notes)
+        new_event = Event(
+            contract_id=contract_id,
+            start_date=start_date,
+            end_date=end_date,
+            location=location,
+            attendees=attendees,
+            notes=notes,
+        )
         session.add(new_event)
         session.commit()
         return display_event_created(new_event)
@@ -115,7 +138,9 @@ def update_event_support_contact(session, ctx, event_id, support_id):
     if not selected_event:
         return display_unknown_event()
 
-    selected_contact = session.scalar(select(User).where(and_(User.id == support_id, User.role == 2)))
+    selected_contact = session.scalar(
+        select(User).where(and_(User.id == support_id, User.role == 2))
+    )
     if not selected_contact:
         return display_unknown_user()
 
@@ -130,16 +155,30 @@ def update_event_support_contact(session, ctx, event_id, support_id):
 
 @event.command(name="update")
 @click.option("-id", "--event_id", required=True, type=int)
-@click.option("-sd", "--start_date", required=False, help="Start date (ex:14-08-2024 13:00)",
-              type=click.DateTime(formats=["%d-%m-%Y %H:%M"]), default=None)
-@click.option("-ed", "--end_date", required=False, help="End date (ex:14-08-2024 13:00)",
-              type=click.DateTime(formats=["%d-%m-%Y %H:%M"]), default=None)
+@click.option(
+    "-sd",
+    "--start_date",
+    required=False,
+    help="Start date (ex:14-08-2024 13:00)",
+    type=click.DateTime(formats=["%d-%m-%Y %H:%M"]),
+    default=None,
+)
+@click.option(
+    "-ed",
+    "--end_date",
+    required=False,
+    help="End date (ex:14-08-2024 13:00)",
+    type=click.DateTime(formats=["%d-%m-%Y %H:%M"]),
+    default=None,
+)
 @click.option("-l", "--location", required=False, type=str, default=None)
 @click.option("-a", "--attendees", required=False, type=int, default=None)
 @click.option("-n", "--notes", required=False, type=str, default=None)
 @click.pass_context
 @has_permission(["support"])
-def update_event(session, ctx, event_id, start_date, end_date, location, attendees, notes):
+def update_event(
+    session, ctx, event_id, start_date, end_date, location, attendees, notes
+):
     if not (start_date or end_date or location or attendees or notes):
         return display_no_data_to_update()
 
@@ -152,7 +191,9 @@ def update_event(session, ctx, event_id, start_date, end_date, location, attende
         return display_not_authorized()
 
     try:
-        selected_event.start_date = start_date if start_date else selected_event.start_date
+        selected_event.start_date = (
+            start_date if start_date else selected_event.start_date
+        )
         selected_event.end_date = end_date if end_date else selected_event.end_date
         if selected_event.start_date and selected_event.end_date:
             check_date(selected_event.start_date, selected_event.end_date)

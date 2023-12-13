@@ -31,4 +31,6 @@ def display_user_deleted():
 
 def display_users_list(users):
     for user in users:
-        print(f"Id: {user.id}, name: {user.name}, email: {user.email}, role: {user.role}")
+        print(
+            f"Id: {user.id}, name: {user.name}, email: {user.email}, role: {user.role}"
+        )

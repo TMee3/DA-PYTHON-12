@@ -1,6 +1,8 @@
 import pytest
 from click.testing import CliRunner
+
 from epic_events.controllers.auth_controller import login, logout
+
 
 class TestAuthController:
     runner = CliRunner()
@@ -9,11 +11,23 @@ class TestAuthController:
         "email, password, expected_exit_code, expected_output",
         [
             ("manager_lucas@test.com", "1234", 0, "Connection successful."),
-            ("manager_lucas@test.com", "4567", 1, "Please, be sure to use the correct email and password."),
-            ("unknown@test.com", "1234", 1, "Please, be sure to use the correct email and password."),
+            (
+                "manager_lucas@test.com",
+                "4567",
+                1,
+                "Please, be sure to use the correct email and password.",
+            ),
+            (
+                "unknown@test.com",
+                "1234",
+                1,
+                "Please, be sure to use the correct email and password.",
+            ),
         ],
     )
-    def test_login(self, email, password, expected_exit_code, expected_output, mocked_session):
+    def test_login(
+        self, email, password, expected_exit_code, expected_output, mocked_session
+    ):
         with self.runner.isolated_filesystem():
             options = ["-e", email, "--password", password]
             result = self.runner.invoke(login, options, obj={"session": mocked_session})
@@ -45,6 +59,8 @@ class TestAuthController:
             assert result.exit_code == 0
             assert "Connection successful." in result.output
 
-            result = self.runner.invoke(logout, input="y", obj={"session": mocked_session})
+            result = self.runner.invoke(
+                logout, input="y", obj={"session": mocked_session}
+            )
             assert result.exit_code == 0
             assert "You are disconnected, see you later." in result.output

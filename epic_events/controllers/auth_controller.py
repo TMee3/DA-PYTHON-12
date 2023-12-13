@@ -1,24 +1,19 @@
-from functools import wraps
 import json
 import os
+from functools import wraps
 
 import click
 import sentry_sdk
-from dotenv import load_dotenv
-from jwt import encode, decode, InvalidTokenError
+from jwt import InvalidTokenError, decode, encode
 from sqlalchemy import select
 
 from epic_events.models import User
-from epic_events.views.auth_view import (
-    display_successful_connection,
-    display_auth_already_connected,
-    display_invalid_token,
-    display_auth_data_entry_error,
-    display_not_connected_error,
-)
+from epic_events.views.auth_view import (display_auth_already_connected,
+                                         display_auth_data_entry_error,
+                                         display_invalid_token,
+                                         display_not_connected_error,
+                                         display_successful_connection)
 
-load_dotenv()
-JWT_KEY = os.getenv("JWT_KEY")
 TOKEN_FILE_PATH = "auth_token.json"
 ERROR_MESSAGES = {
     "json_decode_error": "JSON decode error",
@@ -26,14 +21,20 @@ ERROR_MESSAGES = {
     "logout_confirmation": "Are you sure you want to logout?",
 }
 
+
+def get_jwt_key():
+    return os.getenv("JWT_KEY")
+
+
 def verify_token(token):
-    return decode(token, JWT_KEY, algorithms=["HS256"])
+    return decode(token, get_jwt_key(), algorithms=["HS256"])
+
 
 def get_token():
     try:
-        with open(TOKEN_FILE_PATH, 'r') as f:
+        with open(TOKEN_FILE_PATH, "r") as f:
             data = json.load(f)
-            return data.get('token', None)
+            return data.get("token", None)
     except json.JSONDecodeError as e:
         # Send a message via sentry to notify the json error
         with sentry_sdk.push_scope() as scope:
@@ -42,6 +43,7 @@ def get_token():
         return None
     except FileNotFoundError:
         return None
+
 
 def check_auth(function):
     @wraps(function)
@@ -61,12 +63,15 @@ def check_auth(function):
                 scope.set_tag("token-error", ERROR_MESSAGES["token_error_invalid"])
                 sentry_sdk.capture_exception(e)
             return display_invalid_token()
+
     return wrapper
+
 
 @click.group()
 @click.pass_context
 def auth(ctx):
     ctx.ensure_object(dict)
+
 
 @auth.command()
 @click.option("-e", "--email", required=True, type=str)
@@ -81,10 +86,11 @@ def login(ctx, email, password):
     if get_token():
         return display_auth_already_connected()
 
-    token = encode({"id": user.id}, JWT_KEY, algorithm="HS256")
+    token = encode({"id": user.id}, get_jwt_key(), algorithm="HS256")
     with open(TOKEN_FILE_PATH, "w") as f:
         json.dump({"token": token}, f)
     return display_successful_connection(login=True)
+
 
 @auth.command()
 @click.confirmation_option(prompt=ERROR_MESSAGES["logout_confirmation"])

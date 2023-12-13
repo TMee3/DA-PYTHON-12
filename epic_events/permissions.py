@@ -12,9 +12,14 @@ def has_permission(roles):
         def wrapper(ctx, *args, **kwargs):
             session = ctx.obj["session"]
             current_user = ctx.obj["current_user"]
-            selected_roles = [session.scalar(select(Role.id).where(Role.name == role)) for role in roles]
+            selected_roles = [
+                session.scalar(select(Role.id).where(Role.name == role))
+                for role in roles
+            ]
             if current_user.role not in selected_roles:
                 return display_not_authorized()
             return function(session, ctx, *args, **kwargs)
+
         return wrapper
+
     return decorator

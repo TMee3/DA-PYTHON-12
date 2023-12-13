@@ -3,11 +3,19 @@ import sentry_sdk
 from sqlalchemy import select
 
 from epic_events.controllers.auth_controller import check_auth
-from epic_events.permissions import has_permission
 from epic_events.models import Role, User
-from epic_events.views.generic_view import display_missing_data, display_exception, display_no_data_to_update
-from epic_events.views.user_view import display_user_already_exists, display_incorrect_role, display_user_created, \
-    display_unknown_user, display_user_data, display_user_updated, display_user_deleted, display_users_list
+from epic_events.permissions import has_permission
+from epic_events.views.generic_view import (display_exception,
+                                            display_missing_data,
+                                            display_no_data_to_update)
+from epic_events.views.user_view import (display_incorrect_role,
+                                         display_unknown_user,
+                                         display_user_already_exists,
+                                         display_user_created,
+                                         display_user_data,
+                                         display_user_deleted,
+                                         display_user_updated,
+                                         display_users_list)
 
 
 @click.group()
@@ -35,9 +43,7 @@ def create_user(session, ctx, name, email, password, role):
         return display_incorrect_role(role)
 
     try:
-        new_user = User(name=name,
-                        email=email,
-                        role=user_role.id)
+        new_user = User(name=name, email=email, role=user_role.id)
         new_user.set_password(password)
         session.add(new_user)
         session.commit()
@@ -107,7 +113,7 @@ def get_user(session, ctx, user_id):
 @click.confirmation_option(prompt="Are you sure you want to delete this user?")
 @click.pass_context
 @has_permission(roles=["management"])
-def delete_user(session, ctx,  user_id):
+def delete_user(session, ctx, user_id):
     selected_user = session.scalar(select(User).where(User.id == user_id))
     if not selected_user:
         return display_unknown_user()

@@ -1,16 +1,20 @@
 import click
 import sentry_sdk
-from sqlalchemy import select, and_
+from sqlalchemy import and_, select
 
 from epic_events.controllers.auth_controller import check_auth
-from epic_events.permissions import has_permission
 from epic_events.models import Client, User
-from epic_events.views.client_view import (
-    display_unknown_client, display_client_data, display_clients_list,
-    display_client_already_exists, display_client_created, display_client_updated,
-    display_client_deleted, display_client_contact_updated
-)
-from epic_events.views.generic_view import display_exception, display_no_data_to_update
+from epic_events.permissions import has_permission
+from epic_events.views.client_view import (display_client_already_exists,
+                                           display_client_contact_updated,
+                                           display_client_created,
+                                           display_client_data,
+                                           display_client_deleted,
+                                           display_client_updated,
+                                           display_clients_list,
+                                           display_unknown_client)
+from epic_events.views.generic_view import (display_exception,
+                                            display_no_data_to_update)
 from epic_events.views.permissions_view import display_not_authorized
 from epic_events.views.user_view import display_unknown_user
 
@@ -18,15 +22,18 @@ ERROR_MESSAGES = {
     "logout_confirmation": "Are you sure you want to delete this client?",
 }
 
+
 def capture_and_display_exception(session, e):
     sentry_sdk.capture_exception(e)
     return display_exception(e)
+
 
 @click.group()
 @click.pass_context
 @check_auth
 def client(ctx):
     ctx.ensure_object(dict)
+
 
 @client.command(name="list")
 @click.option("-c", "--contact_id", required=False, type=int)
@@ -42,15 +49,17 @@ def list_clients(session, ctx, contact_id):
     except Exception as e:
         return capture_and_display_exception(session, e)
 
+
 @client.command(name="get")
 @click.option("-id", "--client_id", required=True, type=int)
 @click.pass_context
 @has_permission(["management", "commercial", "support"])
-def get_client(session, ctx,  client_id):
+def get_client(session, ctx, client_id):
     selected_client = session.scalar(select(Client).where(Client.id == client_id))
     if not selected_client:
         return display_unknown_client()
     return display_client_data(selected_client)
+
 
 @client.command(name="create")
 @click.option("-e", "--email", required=True, type=str)
@@ -64,16 +73,19 @@ def create_client(session, ctx, email, name, phone, company):
         return display_client_already_exists(email)
 
     try:
-        new_client = Client(email=email,
-                            commercial_contact_id=ctx.obj["current_user"].id,
-                            name=name,
-                            phone=phone,
-                            company=company)
+        new_client = Client(
+            email=email,
+            commercial_contact_id=ctx.obj["current_user"].id,
+            name=name,
+            phone=phone,
+            company=company,
+        )
         session.add(new_client)
         session.commit()
         return display_client_created(email)
     except Exception as e:
         return capture_and_display_exception(session, e)
+
 
 @client.command(name="update")
 @click.option("-id", "--client_id", required=True, type=int)
@@ -107,6 +119,7 @@ def update_client(session, ctx, client_id, email, name, phone, company):
     except Exception as e:
         return capture_and_display_exception(session, e)
 
+
 @client.command(name="contact")
 @click.option("-id", "--client_id", required=True, type=int)
 @click.option("-c", "--contact_id", required=True, type=int)
@@ -117,7 +130,9 @@ def update_client_contact(session, ctx, client_id, contact_id):
     if not selected_client:
         return display_unknown_client()
 
-    selected_contact = session.scalar(select(User).where(and_(User.id == contact_id, User.role == 1)))
+    selected_contact = session.scalar(
+        select(User).where(and_(User.id == contact_id, User.role == 1))
+    )
     if not selected_contact:
         return display_unknown_user()
 
@@ -127,6 +142,7 @@ def update_client_contact(session, ctx, client_id, contact_id):
         return display_client_contact_updated(selected_client, selected_contact)
     except Exception as e:
         return capture_and_display_exception(session, e)
+
 
 @client.command(name="delete")
 @click.option("-id", "--client_id", required=True, type=int)
@@ -147,6 +163,7 @@ def delete_client(session, ctx, client_id):
         return display_client_deleted()
     except Exception as e:
         return capture_and_display_exception(session, e)
+
 
 if __name__ == "__main__":
     client()
