@@ -1,7 +1,6 @@
 from datetime import datetime
 
 import click
-import sentry_sdk
 from sqlalchemy import and_, select
 
 from epic_events.controllers.auth_controller import check_auth
@@ -65,8 +64,7 @@ def list_events(session, ctx, contract_id, support_id, no_contact):
         events = session.scalars(query)
         return display_events_list(events)
     except Exception as e:
-        sentry_sdk.capture_exception(e)
-        return display_exception(e)
+        raise
 
 
 @event.command(name="create")
@@ -124,8 +122,7 @@ def create_event(
         session.commit()
         return display_event_created(new_event)
     except Exception as e:
-        sentry_sdk.capture_exception(e)
-        return display_exception(e)
+        raise
 
 
 @event.command(name="contact")
@@ -149,8 +146,7 @@ def update_event_support_contact(session, ctx, event_id, support_id):
         session.commit()
         return display_event_contact_updated(selected_event, selected_contact)
     except Exception as e:
-        sentry_sdk.capture_exception(e)
-        return display_exception(e)
+        raise
 
 
 @event.command(name="update")
@@ -203,8 +199,7 @@ def update_event(
         session.commit()
         return display_event_updated(selected_event)
     except Exception as e:
-        sentry_sdk.capture_exception(e)
-        return display_exception(e)
+        raise
 
 
 @event.command(name="get")
@@ -237,5 +232,4 @@ def delete_event(session, ctx, event_id):
         session.commit()
         return display_event_deleted()
     except Exception as e:
-        sentry_sdk.capture_exception(e)
-        return display_exception(e)
+        raise

@@ -1,4 +1,5 @@
 import click
+import sentry_sdk
 
 from epic_events.controllers.auth_controller import auth
 from epic_events.controllers.client_controller import client
@@ -20,6 +21,7 @@ def cli(ctx):
     try:
         ctx.obj["session"] = current_session()
     except Exception as e:
+        sentry_sdk.capture_exception(e)
         click.echo("Failed to initialize database session.", err=True)
         click.echo(str(e), err=True)
         ctx.exit(1)

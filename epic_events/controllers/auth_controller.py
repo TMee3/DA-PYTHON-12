@@ -3,7 +3,6 @@ import os
 from functools import wraps
 
 import click
-import sentry_sdk
 from jwt import InvalidTokenError, decode, encode
 from sqlalchemy import select
 
@@ -36,10 +35,6 @@ def get_token():
             data = json.load(f)
             return data.get("token", None)
     except json.JSONDecodeError as e:
-        # Send a message via sentry to notify the json error
-        with sentry_sdk.push_scope() as scope:
-            scope.set_tag("json-error", ERROR_MESSAGES["json_decode_error"])
-            sentry_sdk.capture_exception(e)
         return None
     except FileNotFoundError:
         return None
@@ -58,10 +53,6 @@ def check_auth(function):
             ctx.obj["current_user"] = current_user
             return function(ctx, *args, **kwargs)
         except InvalidTokenError as e:
-            # Send a message via sentry to notify the token error
-            with sentry_sdk.push_scope() as scope:
-                scope.set_tag("token-error", ERROR_MESSAGES["token_error_invalid"])
-                sentry_sdk.capture_exception(e)
             return display_invalid_token()
 
     return wrapper

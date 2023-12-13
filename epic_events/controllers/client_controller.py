@@ -1,5 +1,4 @@
 import click
-import sentry_sdk
 from sqlalchemy import and_, select
 
 from epic_events.controllers.auth_controller import check_auth
@@ -13,8 +12,7 @@ from epic_events.views.client_view import (display_client_already_exists,
                                            display_client_updated,
                                            display_clients_list,
                                            display_unknown_client)
-from epic_events.views.generic_view import (display_exception,
-                                            display_no_data_to_update)
+from epic_events.views.generic_view import display_no_data_to_update
 from epic_events.views.permissions_view import display_not_authorized
 from epic_events.views.user_view import display_unknown_user
 
@@ -22,18 +20,11 @@ ERROR_MESSAGES = {
     "logout_confirmation": "Are you sure you want to delete this client?",
 }
 
-
-def capture_and_display_exception(session, e):
-    sentry_sdk.capture_exception(e)
-    return display_exception(e)
-
-
 @click.group()
 @click.pass_context
 @check_auth
 def client(ctx):
     ctx.ensure_object(dict)
-
 
 @client.command(name="list")
 @click.option("-c", "--contact_id", required=False, type=int)
@@ -46,9 +37,8 @@ def list_clients(session, ctx, contact_id):
             query = query.where(Client.commercial_contact_id == contact_id)
         clients = session.scalars(query.order_by(Client.name))
         return display_clients_list(clients)
-    except Exception as e:
-        return capture_and_display_exception(session, e)
-
+    except Exception:
+        raise  # Let the exception propagate
 
 @client.command(name="get")
 @click.option("-id", "--client_id", required=True, type=int)
@@ -59,7 +49,6 @@ def get_client(session, ctx, client_id):
     if not selected_client:
         return display_unknown_client()
     return display_client_data(selected_client)
-
 
 @client.command(name="create")
 @click.option("-e", "--email", required=True, type=str)
@@ -83,9 +72,8 @@ def create_client(session, ctx, email, name, phone, company):
         session.add(new_client)
         session.commit()
         return display_client_created(email)
-    except Exception as e:
-        return capture_and_display_exception(session, e)
-
+    except Exception:
+        raise  # Let the exception propagate
 
 @client.command(name="update")
 @click.option("-id", "--client_id", required=True, type=int)
@@ -116,9 +104,8 @@ def update_client(session, ctx, client_id, email, name, phone, company):
         selected_client.company = company if company else selected_client.company
         session.commit()
         return display_client_updated(selected_client.email)
-    except Exception as e:
-        return capture_and_display_exception(session, e)
-
+    except Exception:
+        raise  # Let the exception propagate
 
 @client.command(name="contact")
 @click.option("-id", "--client_id", required=True, type=int)
@@ -140,9 +127,8 @@ def update_client_contact(session, ctx, client_id, contact_id):
         selected_client.commercial_contact_id = selected_contact.id
         session.commit()
         return display_client_contact_updated(selected_client, selected_contact)
-    except Exception as e:
-        return capture_and_display_exception(session, e)
-
+    except Exception:
+        raise  # Let the exception propagate
 
 @client.command(name="delete")
 @click.option("-id", "--client_id", required=True, type=int)
@@ -161,9 +147,8 @@ def delete_client(session, ctx, client_id):
         session.delete(selected_client)
         session.commit()
         return display_client_deleted()
-    except Exception as e:
-        return capture_and_display_exception(session, e)
-
+    except Exception:
+        raise  # Let the exception propagate
 
 if __name__ == "__main__":
     client()

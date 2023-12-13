@@ -55,8 +55,7 @@ def create_user(session, ctx, name, email, password, role):
 
         return display_user_created(email)
     except Exception as e:
-        sentry_sdk.capture_exception(e)
-        return display_exception(e)
+        raise
 
 
 @user.command(name="update")
@@ -93,8 +92,7 @@ def update_user(session, ctx, user_id, name, email, role):
 
         return display_user_updated(selected_user.email)
     except Exception as e:
-        sentry_sdk.capture_exception(e)
-        return display_exception(e)
+        raise
 
 
 @user.command(name="get")
@@ -123,8 +121,7 @@ def delete_user(session, ctx, user_id):
         session.commit()
         return display_user_deleted()
     except Exception as e:
-        sentry_sdk.capture_exception(e)
-        return display_exception(e)
+        raise
 
 
 @user.command(name="list")
@@ -142,5 +139,4 @@ def list_users(session, ctx, role_id):
         users = session.scalars(query.order_by(User.name))
         return display_users_list(users)
     except Exception as e:
-        sentry_sdk.capture_exception(e)
-        return display_exception(e)
+        raise
