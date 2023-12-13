@@ -34,7 +34,7 @@ def get_token():
         with open(TOKEN_FILE_PATH, "r") as f:
             data = json.load(f)
             return data.get("token", None)
-    except json.JSONDecodeError as e:
+    except json.JSONDecodeError:
         return None
     except FileNotFoundError:
         return None
@@ -52,7 +52,7 @@ def check_auth(function):
             current_user = session.scalar(select(User).where(User.id == auth_id["id"]))
             ctx.obj["current_user"] = current_user
             return function(ctx, *args, **kwargs)
-        except InvalidTokenError as e:
+        except InvalidTokenError:
             return display_invalid_token()
 
     return wrapper

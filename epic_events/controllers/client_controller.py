@@ -20,11 +20,13 @@ ERROR_MESSAGES = {
     "logout_confirmation": "Are you sure you want to delete this client?",
 }
 
+
 @click.group()
 @click.pass_context
 @check_auth
 def client(ctx):
     ctx.ensure_object(dict)
+
 
 @client.command(name="list")
 @click.option("-c", "--contact_id", required=False, type=int)
@@ -40,6 +42,7 @@ def list_clients(session, ctx, contact_id):
     except Exception:
         raise  # Let the exception propagate
 
+
 @client.command(name="get")
 @click.option("-id", "--client_id", required=True, type=int)
 @click.pass_context
@@ -49,6 +52,7 @@ def get_client(session, ctx, client_id):
     if not selected_client:
         return display_unknown_client()
     return display_client_data(selected_client)
+
 
 @client.command(name="create")
 @click.option("-e", "--email", required=True, type=str)
@@ -74,6 +78,7 @@ def create_client(session, ctx, email, name, phone, company):
         return display_client_created(email)
     except Exception:
         raise  # Let the exception propagate
+
 
 @client.command(name="update")
 @click.option("-id", "--client_id", required=True, type=int)
@@ -107,6 +112,7 @@ def update_client(session, ctx, client_id, email, name, phone, company):
     except Exception:
         raise  # Let the exception propagate
 
+
 @client.command(name="contact")
 @click.option("-id", "--client_id", required=True, type=int)
 @click.option("-c", "--contact_id", required=True, type=int)
@@ -130,6 +136,7 @@ def update_client_contact(session, ctx, client_id, contact_id):
     except Exception:
         raise  # Let the exception propagate
 
+
 @client.command(name="delete")
 @click.option("-id", "--client_id", required=True, type=int)
 @click.confirmation_option(prompt=ERROR_MESSAGES["logout_confirmation"])
@@ -149,6 +156,7 @@ def delete_client(session, ctx, client_id):
         return display_client_deleted()
     except Exception:
         raise  # Let the exception propagate
+
 
 if __name__ == "__main__":
     client()
