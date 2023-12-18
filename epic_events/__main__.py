@@ -13,5 +13,8 @@ if __name__ == "__main__":
         traces_sample_rate=1.0,
         profiles_sample_rate=1.0,
     )
-
-    cli()
+    try:
+        cli()
+    except Exception as e:
+        sentry_sdk.capture_exception(e)
+        raise

@@ -17,14 +17,7 @@ def cli(ctx):
     Initializes the main CLI group and the shared session for database interaction.
     """
     ctx.ensure_object(dict)
-
-    try:
-        ctx.obj["session"] = current_session()
-    except Exception as e:
-        sentry_sdk.capture_exception(e)
-        click.echo("Failed to initialize database session.", err=True)
-        click.echo(str(e), err=True)
-        ctx.exit(1)
+    ctx.obj["session"] = current_session()
 
 
 # Add commands to the CLI group
